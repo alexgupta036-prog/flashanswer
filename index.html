@@ -6,13 +6,35 @@
   <title>FlashAnswer ⚡</title>
 
   <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --card: #fafafa;
+      --border: #e1e1e1;
+    }
+
+    body.dark {
+      --bg: #0f1220;
+      --text: #e9ecff;
+      --card: #151a3a;
+      --border: #2a3170;
+    }
+
     body {
       font-family: system-ui, -apple-system, Arial, sans-serif;
       max-width: 800px;
       margin: 40px auto;
       padding: 0 16px;
       line-height: 1.5;
-      background: #ffffff;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     h1 {
@@ -20,8 +42,28 @@
     }
 
     .subtitle {
-      color: #555;
+      color: #777;
       margin-top: 0;
+    }
+
+    button {
+      padding: 10px 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--card);
+      color: var(--text);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
     }
 
     .row {
@@ -30,39 +72,26 @@
       margin-top: 16px;
     }
 
-    input {
-      flex: 1;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-    }
-
-    button {
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #bbb;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #f5f5f5;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     .card {
       margin-top: 20px;
-      border: 1px solid #e1e1e1;
-      border-radius: 12px;
       padding: 16px;
-      background: #fafafa;
+      border-radius: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.35s ease-out both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .small {
       font-size: 13px;
-      color: #666;
+      color: #888;
       margin-top: 8px;
     }
 
@@ -70,8 +99,7 @@
       display: inline-block;
       padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid #ddd;
-      background: white;
+      border: 1px solid var(--border);
       font-size: 12px;
       margin-right: 6px;
     }
@@ -79,11 +107,15 @@
 </head>
 
 <body>
-  <h1>FlashAnswer ⚡</h1>
+  <div class="header">
+    <h1>FlashAnswer ⚡</h1>
+    <button id="themeBtn">🌙</button>
+  </div>
+
   <p class="subtitle">Ask anything. Answers appear super fast.</p>
 
   <div class="row">
-    <input id="questionBox" placeholder="Ask a question..." autocomplete="off" />
+    <input id="questionBox" placeholder="Ask a question..." />
     <button id="askBtn">Ask</button>
   </div>
 
@@ -93,19 +125,27 @@
   </div>
 
   <script>
-    // Stores previous answers so repeated questions are instant
     const answerStore = {};
-
     const questionBox = document.getElementById("questionBox");
     const askBtn = document.getElementById("askBtn");
     const answerText = document.getElementById("answerText");
     const metaText = document.getElementById("metaText");
+    const themeBtn = document.getElementById("themeBtn");
 
-    // Allow pressing Enter to ask
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      themeBtn.textContent = "☀️";
+    }
+
+    themeBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      themeBtn.textContent = isDark ? "☀️" : "🌙";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+
     questionBox.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        runQuestion();
-      }
+      if (e.key === "Enter") runQuestion();
     });
 
     askBtn.addEventListener("click", runQuestion);
@@ -124,10 +164,9 @@
         return;
       }
 
-      // Instant answer if cached
       if (answerStore[q]) {
         answerText.innerHTML = `<span class="tag">cached</span> ${answerStore[q]}`;
-        metaText.textContent = "This was answered instantly.";
+        metaText.textContent = "Answered instantly.";
         return;
       }
 
@@ -137,18 +176,18 @@
 
       const start = performance.now();
 
-      // Demo answer (real AI comes later)
       setTimeout(() => {
-        const answer =
-          `Quick answer (demo): I understood your question: “${original.trim()}”.`;
-
+        const answer = `Quick answer (demo): I understood your question: “${original}”.`;
         answerStore[q] = answer;
 
         const seconds = ((performance.now() - start) / 1000).toFixed(2);
 
         answerText.textContent = answer;
-        metaText.textContent = `Answered in ~${seconds} seconds.`;
+        answerText.classList.remove("fade-in");
+        void answerText.offsetWidth;
+        answerText.classList.add("fade-in");
 
+        metaText.textContent = `Answered in ~${seconds} seconds.`;
         askBtn.disabled = false;
       }, 500);
     }
