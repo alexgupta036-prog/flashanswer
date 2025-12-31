@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FlashAnswer ⚡</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 16px;
+      line-height: 1.5;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #555;
+      margin-top: 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    button {
+      padding: 12px 16px;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #f5f5f5;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .card {
+      margin-top: 20px;
+      border: 1px solid #e1e1e1;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fafafa;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: white;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>FlashAnswer ⚡</h1>
+  <p class="subtitle">Ask anything. Answers appear super fast.</p>
+
+  <div class="row">
+    <input id="questionBox" placeholder="Ask a question..." autocomplete="off" />
+    <button id="askBtn">Ask</button>
+  </div>
+
+  <div class="card">
+    <div id="answerText">Your answer will appear here.</div>
+    <div class="small" id="metaText"></div>
+  </div>
+
+  <script>
+    // Stores previous answers so repeated questions are instant
+    const answerStore = {};
+
+    const questionBox = document.getElementById("questionBox");
+    const askBtn = document.getElementById("askBtn");
+    const answerText = document.getElementById("answerText");
+    const metaText = document.getElementById("metaText");
+
+    // Allow pressing Enter to ask
+    questionBox.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        runQuestion();
+      }
+    });
+
+    askBtn.addEventListener("click", runQuestion);
+
+    function normalize(text) {
+      return text.trim().toLowerCase();
+    }
+
+    function runQuestion() {
+      const original = questionBox.value;
+      const q = normalize(original);
+
+      if (!q) {
+        answerText.textContent = "Type a question first 🙂";
+        metaText.textContent = "";
+        return;
+      }
+
+      // Instant answer if cached
+      if (answerStore[q]) {
+        answerText.innerHTML = `<span class="tag">cached</span> ${answerStore[q]}`;
+        metaText.textContent = "This was answered instantly.";
+        return;
+      }
+
+      askBtn.disabled = true;
+      answerText.textContent = "⚡ Thinking...";
+      metaText.textContent = "";
+
+      const start = performance.now();
+
+      // Demo answer (real AI comes later)
+      setTimeout(() => {
+        const answer =
+          `Quick answer (demo): I understood your question: “${original.trim()}”.`;
+
+        answerStore[q] = answer;
+
+        const seconds = ((performance.now() - start) / 1000).toFixed(2);
+
+        answerText.textContent = answer;
+        metaText.textContent = `Answered in ~${seconds} seconds.`;
+
+        askBtn.disabled = false;
+      }, 500);
+    }
+  </script>
+</body>
+</html>
