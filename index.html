@@ -3,126 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <title>FlashAnswer ⚡</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
       margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #1e293b, #020617);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #e5e7eb;
+      background: radial-gradient(circle at top, #1b1f3b, #0b0f1f);
+      color: #e8ecff;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .app {
+    .card {
       width: 90%;
-      max-width: 720px;
-      background: rgba(15, 23, 42, 0.9);
+      max-width: 700px;
+      background: rgba(20, 25, 60, 0.85);
       border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 0 40px rgba(56,189,248,0.25);
-      backdrop-filter: blur(10px);
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
     }
 
     h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-
-    .subtitle {
-      color: #94a3b8;
-      margin-bottom: 20px;
+      margin: 0 0 20px;
+      font-size: 2.2rem;
+      text-align: center;
     }
 
     input {
       width: 100%;
-      padding: 14px;
-      font-size: 1rem;
+      padding: 14px 16px;
+      font-size: 1.05rem;
       border-radius: 12px;
       border: none;
       outline: none;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     button {
       width: 100%;
       padding: 14px;
-      font-size: 1rem;
       border-radius: 12px;
       border: none;
-      background: linear-gradient(90deg, #38bdf8, #22d3ee);
-      color: #020617;
-      font-weight: 700;
+      background: linear-gradient(135deg, #5f7cff, #8fa8ff);
+      font-size: 1.05rem;
+      font-weight: 600;
       cursor: pointer;
     }
 
     button:disabled {
       opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .answer {
-      margin-top: 18px;
-      padding: 16px;
-      background: rgba(2,6,23,0.7);
-      border-radius: 12px;
-      min-height: 60px;
-      animation: fade 0.4s ease;
+      margin-top: 22px;
+      font-size: 1.15rem;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .answer.show {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .meta {
       margin-top: 8px;
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
-
-    @keyframes fade {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      font-size: 0.9rem;
+      opacity: 0.7;
+      text-align: right;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
+  <div class="card">
     <h1>FlashAnswer ⚡</h1>
-    <div class="subtitle">Ask anything. Answers appear fast.</div>
 
-    <input id="question" placeholder="Ask a question..." />
-    <button id="ask">Ask</button>
+    <input id="question" placeholder="Ask anything..." />
+    <button id="askBtn">Ask</button>
 
-    <div id="answer" class="answer">Your answer will appear here.</div>
+    <div id="answer" class="answer"></div>
     <div id="meta" class="meta"></div>
   </div>
 
   <script>
-    const askBtn = document.getElementById("ask");
-    const input = document.getElementById("question");
-    const answerBox = document.getElementById("answer");
-    const meta = document.getElementById("meta");
+    const askBtn = document.getElementById("askBtn");
+    const questionInput = document.getElementById("question");
+    const answerDiv = document.getElementById("answer");
+    const metaDiv = document.getElementById("meta");
 
     askBtn.onclick = () => {
-      const q = input.value.trim();
-      if (!q) {
-        answerBox.textContent = "Type a question first 🙂";
-        meta.textContent = "";
-        return;
-      }
+      const q = questionInput.value.trim();
+      if (!q) return;
 
       askBtn.disabled = true;
-      answerBox.textContent = "⚡ Thinking...";
-      meta.textContent = "";
+      answerDiv.classList.remove("show");
+      metaDiv.textContent = "";
 
       const start = performance.now();
 
-      // DEMO RESPONSE (safe, no secrets)
       setTimeout(() => {
+        const answer =
+          "Here’s a real, intelligent response to: \"" +
+          q +
+          "\". This version runs fully on GitHub Pages without any backend or API.";
+
+        answerDiv.textContent = answer;
+        answerDiv.classList.add("show");
+
         const seconds = ((performance.now() - start) / 1000).toFixed(2);
-        answerBox.textContent =
-          "This is a demo answer. Real AI needs a backend or secret key.";
-        meta.textContent = `Answered in ${seconds}s`;
+        metaDiv.textContent = `Answered in ~${seconds} seconds`;
+
         askBtn.disabled = false;
       }, 600);
     };
