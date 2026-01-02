@@ -1,70 +1,49 @@
-exports.handler = async (event) => {
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
-
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers, body: "" };
-  }
-
+export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: "POST only" }),
+      body: "Method Not Allowed"
     };
   }
 
-  let body = {};
   try {
-    body = JSON.parse(event.body || "{}");
-  } catch {}
+    const { question } = JSON.parse(event.body);
 
-  const question = (body.question || "").trim();
-  if (!question) {
+    if (!question) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing question" })
+      };
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a helpful AI assistant." },
+          { role: "user", content: question }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
     return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({ error: "Missing question" }),
+      statusCode: 200,
+      body: JSON.stringify({
+        answer: data.choices[0].message.content
+      })
     };
-  }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  } catch (err) {
     return {
       statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "Missing OPENAI_API_KEY" }),
+      body: JSON.stringify({ error: "AI error" })
     };
   }
-
-  const r = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-5-mini",
-      input: [
-        {
-          role: "system",
-          content:
-            "You are FlashAnswer for a kid. Be accurate, clear, and honest. If unsure, say so.",
-        },
-        { role: "user", content: question },
-      ],
-    }),
-  });
-
-  const data = await r.json();
-  const answer = data.output_text || "No answer returned.";
-
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({ answer }),
-  };
-};
+}
