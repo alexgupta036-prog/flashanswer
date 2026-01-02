@@ -98,30 +98,37 @@
     const answerDiv = document.getElementById("answer");
     const metaDiv = document.getElementById("meta");
 
-    askBtn.onclick = () => {
+    askBtn.onclick = async () => {
       const q = questionInput.value.trim();
       if (!q) return;
 
       askBtn.disabled = true;
       answerDiv.classList.remove("show");
+      answerDiv.textContent = "Thinking… 🤔";
       metaDiv.textContent = "";
 
       const start = performance.now();
 
-      setTimeout(() => {
-        const answer =
-          "Here’s a real, intelligent response to: \"" +
-          q +
-          "\". This version runs fully on GitHub Pages without any backend or API.";
+      try {
+        const res = await fetch("/.netlify/functions/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q })
+        });
 
-        answerDiv.textContent = answer;
+        const data = await res.json();
+
+        answerDiv.textContent =
+          data.answer || "No answer returned.";
         answerDiv.classList.add("show");
 
         const seconds = ((performance.now() - start) / 1000).toFixed(2);
-        metaDiv.textContent = `Answered in ~${seconds} seconds`;
+        metaDiv.textContent = `Answered in ~${seconds}s`;
+      } catch (err) {
+        answerDiv.textContent = "❌ Error connecting to AI backend.";
+      }
 
-        askBtn.disabled = false;
-      }, 600);
+      askBtn.disabled = false;
     };
   </script>
 </body>
